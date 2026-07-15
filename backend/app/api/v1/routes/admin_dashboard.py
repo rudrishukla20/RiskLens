@@ -117,7 +117,6 @@ async def list_admin_reports(
             storage_path=r.storage_path,
             metadata=r.report_metadata_json,
             created_at=r.created_at,
-            updated_at=r.updated_at,
         )
         for r in reports
     ]

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
+import { formatLabel, formatCurrencyINR } from '@/lib/formatter';
 import {
   ArrowLeft,
   Database,
@@ -689,9 +690,9 @@ export const DatasetDetails = () => {
                                 {issue.severity}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-xs">{issue.message}</td>
-                            <td className="px-6 py-4 font-mono text-xs text-muted-foreground truncate max-w-[120px]" title={issue.observed_value}>
-                              {issue.observed_value || 'None'}
+                            <td className="px-6 py-4 text-xs">{formatLabel(issue.message)}</td>
+                            <td className="px-6 py-4 font-mono text-xs text-muted-foreground truncate max-w-[120px]" title={formatLabel(issue.observed_value)}>
+                              {formatLabel(issue.observed_value) || 'None'}
                             </td>
                           </tr>
                         ))}

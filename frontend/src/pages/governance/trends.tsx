@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { DatasetSelector } from '@/components/dataset-selector';
+import { formatCurrencyINR } from '@/lib/formatter';
 import {
   LineChart,
   Line,
@@ -42,13 +43,7 @@ export const TrendAnalysis = () => {
     setSelectedDatasetId(id);
   };
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
-  };
+
 
   if (!selectedDatasetId) {
     return (
@@ -132,7 +127,7 @@ export const TrendAnalysis = () => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                     <XAxis dataKey="period" stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
                     <YAxis stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
-                    <Tooltip formatter={(value: any) => formatCurrency(value)} />
+                    <Tooltip formatter={(value: any) => formatCurrencyINR(value)} />
                     <Legend />
                     <Area type="monotone" dataKey="exposure" name="Total Outstanding" stroke="#6366f1" fillOpacity={1} fill="url(#colorExp)" strokeWidth={2.5} />
                     <Area type="monotone" dataKey="high_risk_exposure" name="High Risk Exposure" stroke="#ef4444" fill="none" strokeWidth={2} strokeDasharray="4 4" />

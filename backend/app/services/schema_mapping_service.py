@@ -175,5 +175,10 @@ class SchemaMappingService:
         portfolio_service = PortfolioService(self.db, self.user)
         await portfolio_service.run_portfolio_analysis(dataset_id, active_version_id)
 
+        # 6. Trigger Data Quality Validation run automatically
+        from app.analytics.data_quality_engine import DataQualityEngine
+        dq_engine = DataQualityEngine(self.db)
+        await dq_engine.run_validation(dataset_id, active_version_id, self.user.id)
+
         await self.db.flush()
         return saved_mappings

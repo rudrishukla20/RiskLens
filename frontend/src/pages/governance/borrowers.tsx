@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { DatasetSelector } from '@/components/dataset-selector';
+import { formatCurrencyINR, formatLabel } from '@/lib/formatter';
 import {
   BarChart,
   Bar,
@@ -63,7 +64,7 @@ export const BorrowerRisk = () => {
   const getFormatData = (dict: Record<string, number> | string | undefined) => {
     if (!dict || typeof dict === 'string') return [];
     return Object.entries(dict).map(([key, val]) => ({
-      name: key,
+      name: formatLabel(key),
       value: val,
     }));
   };
@@ -136,8 +137,8 @@ export const BorrowerRisk = () => {
             <div className="rounded-lg border border-border bg-card p-5">
               <div className="text-xs font-bold text-muted-foreground uppercase">Income Levels Profile</div>
               <div className="mt-2 text-sm space-y-1">
-                <div className="flex justify-between"><span className="text-muted-foreground">Average:</span> <span className="font-semibold">${borrowerData.income_distribution?.mean?.toLocaleString() || '0'}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Median:</span> <span className="font-semibold">${borrowerData.income_distribution?.median?.toLocaleString() || '0'}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Average:</span> <span className="font-semibold">{formatCurrencyINR(borrowerData.income_distribution?.mean)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Median:</span> <span className="font-semibold">{formatCurrencyINR(borrowerData.income_distribution?.median)}</span></div>
               </div>
             </div>
             <div className="rounded-lg border border-border bg-card p-5">
@@ -227,7 +228,7 @@ export const BorrowerRisk = () => {
                     <div key={idx} className="space-y-1">
                       <div className="text-xs font-bold text-foreground">{box.group}</div>
                       <div className="flex items-center gap-3">
-                        <span className="text-[10px] text-muted-foreground font-mono font-semibold">${box.min.toLocaleString()}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono font-semibold">{formatCurrencyINR(box.min)}</span>
                         <div className="relative flex-1 bg-muted/60 h-6 rounded border border-border flex items-center">
                           {/* Q1 to Q3 Box */}
                           <div
@@ -241,10 +242,10 @@ export const BorrowerRisk = () => {
                           <div
                             className="absolute bg-primary w-0.5 h-full z-10"
                             style={{ left: `${(box.median / maxRange) * 100}%` }}
-                            title={`Median: $${box.median.toLocaleString()}`}
+                            title={`Median: ${formatCurrencyINR(box.median)}`}
                           />
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-mono font-semibold">${box.max.toLocaleString()}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono font-semibold">{formatCurrencyINR(box.max)}</span>
                       </div>
                     </div>
                   );
@@ -275,7 +276,7 @@ export const BorrowerRisk = () => {
                       return (
                         <tr key={idx} className="hover:bg-muted/10">
                           <td className="px-6 py-2.5 font-semibold text-foreground">{cell.x}</td>
-                          <td className="px-6 py-2.5">{cell.y}</td>
+                          <td className="px-6 py-2.5">{formatLabel(cell.y)}</td>
                           <td className="px-6 py-2.5">{cell.loans_count}</td>
                           <td className="px-6 py-2.5 font-mono text-xs text-red-500 font-bold">{cell.value}%</td>
                           <td className="px-6 py-2.5">

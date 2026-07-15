@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { DatasetSelector } from '@/components/dataset-selector';
+import { formatCurrencyINR, formatLabel } from '@/lib/formatter';
 import {
   BarChart,
   Bar,
@@ -48,25 +49,17 @@ export const PortfolioAnalytics = () => {
     setSelectedDatasetId(id);
   };
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
-  };
-
   const getDistributionData = () => {
     if (!portfolioData || !portfolioData.visualizations?.exposure_distribution) return [];
     const dist = portfolioData.visualizations.exposure_distribution;
-    let target = {};
+    let target: Record<string, number> = {};
     if (distTab === 'regions') target = dist.regions || {};
     else if (distTab === 'purposes') target = dist.loan_purposes || {};
     else if (distTab === 'employment') target = dist.employment_types || {};
     else if (distTab === 'income') target = dist.income_bands || {};
 
     return Object.entries(target).map(([key, val]) => ({
-      name: key,
+      name: formatLabel(key),
       value: val,
     }));
   };
@@ -133,7 +126,7 @@ export const PortfolioAnalytics = () => {
             <div className="rounded-lg border border-border bg-card p-4">
               <div className="text-3xs font-bold text-muted-foreground uppercase tracking-wider">Portfolio Size</div>
               <div className="mt-1 text-lg font-black text-foreground">
-                {formatCurrency(portfolioData.portfolio_value || 0)}
+                {formatCurrencyINR(portfolioData.portfolio_value || 0)}
               </div>
             </div>
             <div className="rounded-lg border border-border bg-card p-4">
@@ -151,7 +144,7 @@ export const PortfolioAnalytics = () => {
             <div className="rounded-lg border border-border bg-card p-4">
               <div className="text-3xs font-bold text-muted-foreground uppercase tracking-wider">High-Risk Exposure</div>
               <div className="mt-1 text-lg font-black text-red-500">
-                {formatCurrency(portfolioData.high_risk_exposure || 0)}
+                {formatCurrencyINR(portfolioData.high_risk_exposure || 0)}
               </div>
             </div>
             <div className="rounded-lg border border-border bg-card p-4 col-span-2 lg:col-span-1">
@@ -228,7 +221,7 @@ export const PortfolioAnalytics = () => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                     <XAxis dataKey="name" stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
                     <YAxis stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
-                    <Tooltip formatter={(value: any) => formatCurrency(value)} />
+                    <Tooltip formatter={(value: any) => formatCurrencyINR(value)} />
                     <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -272,7 +265,7 @@ export const PortfolioAnalytics = () => {
                             </span>
                           </td>
                           <td className="px-6 py-2.5">{cell.count}</td>
-                          <td className="px-6 py-2.5 font-mono text-xs text-right">{formatCurrency(cell.exposure)}</td>
+                          <td className="px-6 py-2.5 font-mono text-xs text-right">{formatCurrencyINR(cell.exposure)}</td>
                         </tr>
                       );
                     })}
@@ -313,7 +306,7 @@ export const PortfolioAnalytics = () => {
                           <td className="px-6 py-3 font-mono text-2xs text-muted-foreground uppercase">{row.segment_type}</td>
                           <td className="px-6 py-3 font-semibold text-foreground">{row.segment_value}</td>
                           <td className="px-6 py-3">{row.borrower_count}</td>
-                          <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrency(row.outstanding_exposure)}</td>
+                          <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrencyINR(row.outstanding_exposure)}</td>
                           <td className="px-6 py-3 text-right">{row.average_risk_score?.toFixed(1) || '0.0'}</td>
                           <td className="px-6 py-3 text-right">
                             <span

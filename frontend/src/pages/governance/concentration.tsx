@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { DatasetSelector } from '@/components/dataset-selector';
+import { formatCurrencyINR, formatLabel } from '@/lib/formatter';
 import {
   ComposedChart,
   Bar,
@@ -42,13 +43,7 @@ export const ConcentrationAnalysis = () => {
     setSelectedDatasetId(id);
   };
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
-  };
+
 
   const getHHICategory = (hhi: number) => {
     if (hhi < 1500) return { label: 'Diversified / Safe', color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' };
@@ -173,7 +168,7 @@ export const ConcentrationAnalysis = () => {
                       <XAxis dataKey="region" stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
                       <YAxis yAxisId="left" stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
                       <YAxis yAxisId="right" orientation="right" domain={[0, 100]} stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
-                      <Tooltip formatter={(value: any, name: string) => name === 'exposure' ? formatCurrency(value) : `${value}%`} />
+                      <Tooltip formatter={(value: any, name: string) => name === 'exposure' ? formatCurrencyINR(value) : `${value}%`} />
                       <Legend />
                       <Bar yAxisId="left" dataKey="exposure" fill="#6366f1" radius={[4, 4, 0, 0]} />
                       <Line yAxisId="right" type="monotone" dataKey="cumulative_percentage" stroke="#ef4444" strokeWidth={3} dot={{ r: 4 }} />
@@ -198,7 +193,7 @@ export const ConcentrationAnalysis = () => {
                       stroke="#1e293b"
                       fill="#6366f1"
                     >
-                      <Tooltip formatter={(value: any) => [formatCurrency(value), 'Exposure']} />
+                      <Tooltip formatter={(value: any) => [formatCurrencyINR(value), 'Exposure']} />
                     </Treemap>
                   </ResponsiveContainer>
                 ) : (
@@ -229,8 +224,8 @@ export const ConcentrationAnalysis = () => {
                         <tr key={idx} className="hover:bg-muted/10">
                           <td className="px-6 py-3 font-semibold text-foreground">{row.rank}</td>
                           <td className="px-6 py-3 font-mono text-2xs text-muted-foreground uppercase">{row.concentration_type}</td>
-                          <td className="px-6 py-3 font-semibold">{row.concentration_key}</td>
-                          <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrency(row.exposure_amount)}</td>
+                          <td className="px-6 py-3 font-semibold">{formatLabel(row.concentration_key)}</td>
+                          <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrencyINR(row.exposure_amount)}</td>
                           <td className="px-6 py-3 text-right">
                             <span
                               className={`inline-flex rounded px-1.5 py-0.5 text-2xs font-bold border ${

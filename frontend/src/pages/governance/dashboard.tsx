@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { DatasetSelector } from '@/components/dataset-selector';
+import { formatCurrencyINR } from '@/lib/formatter';
 import {
   LineChart,
   Line,
@@ -55,13 +56,7 @@ export const Dashboard = () => {
     enabled: activeSubTab === 'quality' && !!selectedDatasetId,
   });
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
-  };
+
 
   // Prepare Risk distribution pie data
   const dist = dashboard?.risk_distribution;
@@ -127,7 +122,7 @@ export const Dashboard = () => {
                 <div className="rounded-lg border border-border bg-card p-5 shadow-2xs">
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Portfolio Exposure</div>
                   <div className="mt-2 text-xl font-black text-foreground sm:text-2xl">
-                    {formatCurrency(dashboard?.total_portfolio_exposure || 0)}
+                    {formatCurrencyINR(dashboard?.total_portfolio_exposure || 0)}
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-1">Outstanding aggregate principal sum</p>
                 </div>
@@ -141,7 +136,7 @@ export const Dashboard = () => {
                 <div className="rounded-lg border border-border bg-card p-5 shadow-2xs">
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Delinquency Exposure</div>
                   <div className="mt-2 text-xl font-black text-red-500 sm:text-2xl">
-                    {formatCurrency(dashboard?.total_delinquency_exposure || 0)}
+                    {formatCurrencyINR(dashboard?.total_delinquency_exposure || 0)}
                   </div>
                   <p className="text-[10px] text-red-500/80 mt-1">Exposure in arrears &gt; 30 DPD</p>
                 </div>
@@ -177,7 +172,7 @@ export const Dashboard = () => {
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
-                          <Tooltip formatter={(value: any) => formatCurrency(value)} />
+                          <Tooltip formatter={(value: any) => formatCurrencyINR(value)} />
                           <Legend />
                         </PieChart>
                       </ResponsiveContainer>
@@ -230,7 +225,7 @@ export const Dashboard = () => {
                             <tr key={idx} className="hover:bg-muted/10">
                               <td className="px-6 py-3 font-semibold text-foreground">{sec.sector || 'Unassigned'}</td>
                               <td className="px-6 py-3">{sec.loans_count?.toLocaleString()}</td>
-                              <td className="px-6 py-3 font-mono text-xs">{formatCurrency(sec.exposure_amount || 0)}</td>
+                              <td className="px-6 py-3 font-mono text-xs">{formatCurrencyINR(sec.exposure_amount || 0)}</td>
                               <td className="px-6 py-3">{sec.average_risk_score?.toFixed(1) || '0.0'}</td>
                               <td className="px-6 py-3 font-semibold">
                                 <div className="flex items-center gap-2">
@@ -386,7 +381,7 @@ export const Dashboard = () => {
                       </ResponsiveContainer>
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs text-muted-foreground italic border border-dashed border-border rounded bg-muted/5">
-                        No version history trend found. Run validation to log version metrics.
+                        No historical data available yet
                       </div>
                     )}
                   </div>

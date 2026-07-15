@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { DatasetSelector } from '@/components/dataset-selector';
+import { formatCurrencyINR, formatLabel } from '@/lib/formatter';
 import {
   BarChart,
   Bar,
@@ -41,19 +42,11 @@ export const LoanExposure = () => {
     setSelectedDatasetId(id);
   };
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
-  };
-
   // Convert histogram bins to Recharts friendly list
   const getHistogramData = (hist: any) => {
     if (!hist || !hist.counts) return [];
     return hist.counts.map((c: number, idx: number) => ({
-      range: hist.bins[idx] || `Bin ${idx + 1}`,
+      range: formatLabel(hist.bins[idx] || `Bin ${idx + 1}`),
       Count: c,
     }));
   };
@@ -123,13 +116,13 @@ export const LoanExposure = () => {
             <div className="rounded-lg border border-border bg-card p-5">
               <div className="text-xs font-bold text-muted-foreground uppercase">Outstanding Exposure</div>
               <div className="mt-2 text-2xl font-black text-foreground">
-                {formatCurrency(loanData.outstanding_exposure || 0)}
+                {formatCurrencyINR(loanData.outstanding_exposure || 0)}
               </div>
             </div>
             <div className="rounded-lg border border-border bg-card p-5">
               <div className="text-xs font-bold text-muted-foreground uppercase">Avg Loan Size</div>
               <div className="mt-2 text-2xl font-black text-foreground">
-                {formatCurrency(loanData.average_loan_amount || 0)}
+                {formatCurrencyINR(loanData.average_loan_amount || 0)}
               </div>
             </div>
             <div className="rounded-lg border border-border bg-card p-5">
@@ -153,7 +146,7 @@ export const LoanExposure = () => {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                       <XAxis dataKey="name" stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
                       <YAxis stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
-                      <Tooltip formatter={(value: any) => formatCurrency(value)} />
+                      <Tooltip formatter={(value: any) => formatCurrencyINR(value)} />
                       <Bar dataKey="Exposure" fill="#6366f1" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -176,7 +169,7 @@ export const LoanExposure = () => {
                       stroke="#1e293b"
                       fill="#6366f1"
                     >
-                      <Tooltip formatter={(value: any) => [formatCurrency(value), 'Exposure']} />
+                      <Tooltip formatter={(value: any) => [formatCurrencyINR(value), 'Exposure']} />
                     </Treemap>
                   </ResponsiveContainer>
                 ) : (
@@ -283,7 +276,7 @@ export const LoanExposure = () => {
                             : 'text-foreground'
                         }`}
                       >
-                        {formatCurrency(step.value)}
+                        {formatCurrencyINR(step.value)}
                       </div>
                       <p className="text-[9px] text-muted-foreground mt-1 uppercase">
                         {step.type === 'total' ? 'Initial Sum' : step.type === 'subtraction' ? 'Outflow' : step.type === 'remaining' ? 'Balance' : 'Loss exception'}
@@ -318,7 +311,7 @@ export const LoanExposure = () => {
                         >
                           <td className="px-6 py-3 font-semibold text-foreground">{item.bucket}</td>
                           <td className="px-6 py-3">{item.count}</td>
-                          <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrency(item.exposure)}</td>
+                          <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrencyINR(item.exposure)}</td>
                           <td className="px-6 py-3 text-right font-semibold">
                             <span
                               className={`inline-flex rounded px-1.5 py-0.5 text-2xs ${

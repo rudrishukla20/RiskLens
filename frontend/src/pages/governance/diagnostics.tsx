@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { DatasetSelector } from '@/components/dataset-selector';
+import { formatCurrencyINR, formatLabel } from '@/lib/formatter';
 import {
   ScatterChart,
   Scatter,
@@ -72,13 +73,7 @@ export const DiagnosticAnalytics = () => {
     setSelectedDatasetId(id);
   };
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
-  };
+
 
   if (!selectedDatasetId) {
     return (
@@ -201,7 +196,7 @@ export const DiagnosticAnalytics = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                           <CartesianGrid stroke="rgba(255,255,255,0.05)" />
-                          <XAxis type="number" dataKey="x_exposure" name="Outstanding Exposure" unit="$" stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
+                          <XAxis type="number" dataKey="x_exposure" name="Outstanding Exposure" unit="₹" stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
                           <YAxis type="number" dataKey="y_risk" name="Avg Risk Score" domain={[0, 100]} stroke="currentColor" style={{ opacity: 0.6, fontSize: '10px' }} />
                           <ZAxis type="number" dataKey="size_loans" range={[40, 400]} name="Loans Count" />
                           <Tooltip cursor={{ strokeDasharray: '3 3' }} />
@@ -276,7 +271,7 @@ export const DiagnosticAnalytics = () => {
                             <td className="px-6 py-3 font-mono text-2xs text-muted-foreground uppercase">{row.segment_type}</td>
                             <td className="px-6 py-3 font-semibold text-foreground">{row.segment_value}</td>
                             <td className="px-6 py-3">{row.loans_count}</td>
-                            <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrency(row.outstanding_exposure)}</td>
+                            <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrencyINR(row.outstanding_exposure)}</td>
                             <td className="px-6 py-3 text-right font-bold">{row.average_risk_score?.toFixed(1) || '0.0'}</td>
                             <td className="px-6 py-3 text-right">
                               <span
@@ -382,9 +377,9 @@ export const DiagnosticAnalytics = () => {
                         <tr key={idx} className="hover:bg-muted/10">
                           <td className="px-6 py-3 font-semibold text-foreground">{row.cohort}</td>
                           <td className="px-6 py-3">{row.loan_count}</td>
-                          <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrency(row.exposure)}</td>
+                          <td className="px-6 py-3 font-mono text-xs text-right">{formatCurrencyINR(row.exposure)}</td>
                           <td className="px-6 py-3 text-right font-bold text-red-500 font-mono text-xs">{row.delinquency_rate_pct?.toFixed(2)}%</td>
-                          <td className="px-6 py-3 text-right font-mono text-xs">{formatCurrency(row.high_risk_exposure || 0)}</td>
+                          <td className="px-6 py-3 text-right font-mono text-xs">{formatCurrencyINR(row.high_risk_exposure || 0)}</td>
                         </tr>
                       ))}
                     </tbody>

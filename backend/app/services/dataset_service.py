@@ -336,6 +336,11 @@ class DatasetService:
         portfolio_service = PortfolioService(self.db, self.user)
         await portfolio_service.run_portfolio_analysis(dataset.id, version.id)
 
+        # 4. Trigger Data Quality Validation run automatically
+        from app.analytics.data_quality_engine import DataQualityEngine
+        dq_engine = DataQualityEngine(self.db)
+        await dq_engine.run_validation(dataset.id, version.id, self.user.id)
+
         # Log audit action
         await log_audit_action(
             self.db,

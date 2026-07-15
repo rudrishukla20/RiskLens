@@ -610,6 +610,12 @@ class DataQualityEngine:
             v_run_res = await self.db.execute(v_run_stmt)
             v_run = v_run_res.scalars().first()
 
+            if not v_run:
+                try:
+                    v_run = await self.run_validation(dataset_id, v.id)
+                except Exception as e:
+                    logger.error("Failed to run on-the-fly validation for version %s: %s", v.id, e)
+
             if v_run:
                 # Recalculate health score for past versions
                 v_missing_pct = (
@@ -635,9 +641,11 @@ class DataQualityEngine:
                 validation_trend_by_dataset_version.append(
                     {
                         "version_number": v.version_number,
+                        "version_label": f"v{v.version_number}",
                         "version_id": str(v.id),
                         "validation_score": v_run.validation_score,
                         "health_score": round(v_health, 2),
+                        "score": round(v_health, 2),
                         "status": v_run.status,
                         "completed_at": v_run.completed_at.isoformat() if v_run.completed_at else None,
                     }

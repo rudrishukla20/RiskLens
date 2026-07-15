@@ -30,6 +30,64 @@ from app.repositories.report_repository import ReportRepository
 logger = logging.getLogger(__name__)
 
 
+def format_currency_inr(number) -> str:
+    """Formats a number in Indian Rupee format (en-IN comma grouping)."""
+    if number is None:
+        return "₹0"
+    try:
+        val = float(number)
+    except (ValueError, TypeError):
+        return str(number)
+    
+    is_negative = val < 0
+    val = abs(val)
+    
+    s = f"{val:.2f}"
+    parts = s.split('.')
+    int_part = parts[0]
+    dec_part = parts[1]
+    
+    if len(int_part) <= 3:
+        formatted_int = int_part
+    else:
+        last_three = int_part[-3:]
+        remaining = int_part[:-3]
+        groups = []
+        while remaining:
+            groups.append(remaining[-2:])
+            remaining = remaining[:-2]
+        groups.reverse()
+        formatted_int = ",".join(groups) + "," + last_three
+        
+    formatted_val = f"₹{'-' if is_negative else ''}{formatted_int}.{dec_part}"
+    if formatted_val.endswith(".00"):
+        formatted_val = formatted_val[:-3]
+    return formatted_val
+
+
+def format_if_monetary(key: str, value: Any) -> Any:
+    # Check if key indicates a monetary field
+    monetary_keywords = [
+        "portfolio value",
+        "outstanding exposure",
+        "average loan size",
+        "high risk exposure",
+        "total portfolio size",
+        "exposure value",
+        "exposure amount",
+        "exposure",
+        "value",
+        "annual income",
+        "loan amount",
+    ]
+    if isinstance(key, str) and any(kw in key.lower() for kw in monetary_keywords):
+        if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace(".", "", 1).replace("-", "", 1).isdigit()):
+            return format_currency_inr(value)
+    if isinstance(value, str) and "$" in value:
+        return value.replace("$", "₹")
+    return value
+
+
 class ReportService:
     """Service handling multi-format compliance and performance report compilations."""
 
@@ -85,6 +143,24 @@ class ReportService:
 
         title = self._get_report_title(report_type)
 
+        # Format monetary values in KPIs
+        formatted_kpis = {}
+        for k, v in kpis.items():
+            formatted_kpis[k] = format_if_monetary(k, v)
+
+        # Format monetary values in Tables
+        formatted_tables = {}
+        for t_name, rows in tables.items():
+            formatted_rows = []
+            for row in rows:
+                formatted_row = {}
+                for k, v in row.items():
+                    formatted_row[k] = format_if_monetary(k, v)
+                formatted_rows.append(formatted_row)
+            formatted_tables[t_name] = formatted_rows
+
+        formatted_commentary = ai_commentary.replace("$", "₹") if ai_commentary else ""
+
         report_data = {
             "title": title,
             "generated_timestamp": timestamp_str,
@@ -92,10 +168,10 @@ class ReportService:
             "dataset_name": dataset_name,
             "version": version_num,
             "document_id": str(document_id) if document_id else "N/A",
-            "kpis": kpis,
-            "tables": tables,
+            "kpis": formatted_kpis,
+            "tables": formatted_tables,
             "charts": charts,
-            "ai_commentary": ai_commentary,
+            "ai_commentary": formatted_commentary,
             "assumptions": assumptions,
             "missing_notes": missing_notes,
         }
