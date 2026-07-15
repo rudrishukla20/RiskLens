@@ -1,0 +1,13 @@
+from enum import Enum
+
+
+class DatasetStatusEnum(str, Enum):
+    UPLOADED = "UPLOADED"
+    VALIDATING = "VALIDATING"
+    VALIDATED = "VALIDATED"
+    PROFILING = "PROFILING"
+    PROFILED = "PROFILED"
+    ANALYZING = "ANALYZING"
+    ANALYZED = "ANALYZED"
+    ARCHIVED = "ARCHIVED"
+    FAILED = "FAILED"

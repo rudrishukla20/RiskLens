@@ -1,0 +1,42 @@
+[
+  {
+    "customer_id": "B1",
+    "age": 30,
+    "annual_income": 50000,
+    "emp_type": "Full-time",
+    "loan_val": 10000,
+    "purpose": "Debt consolidation"
+  },
+  {
+    "customer_id": "B2",
+    "age": 45,
+    "annual_income": 120000,
+    "emp_type": "Self-employed",
+    "loan_val": 50000,
+    "purpose": "Home improvement"
+  },
+  {
+    "customer_id": "B3",
+    "age": 22,
+    "annual_income": 30000,
+    "emp_type": "Part-time",
+    "loan_val": 5000,
+    "purpose": "Education"
+  },
+  {
+    "customer_id": "B4",
+    "age": 60,
+    "annual_income": 95000,
+    "emp_type": "Full-time",
+    "loan_val": 20000,
+    "purpose": "Car"
+  },
+  {
+    "customer_id": "B5",
+    "age": 35,
+    "annual_income": 80000,
+    "emp_type": "Full-time",
+    "loan_val": 15000,
+    "purpose": "Debt consolidation"
+  }
+]

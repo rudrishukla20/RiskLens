@@ -1,0 +1,25 @@
+from enum import Enum
+
+
+class ErrorCode(str, Enum):
+    # Validation & Request Errors
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+    BAD_REQUEST = "BAD_REQUEST"
+
+    # IAM Errors
+    AUTH_UNAUTHORIZED = "AUTH_UNAUTHORIZED"
+    AUTH_FORBIDDEN = "AUTH_FORBIDDEN"
+
+    # Access & Concurrency Errors
+    RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"
+    NOT_FOUND = "NOT_FOUND"
+    CONFLICT = "CONFLICT"
+
+    # Business Flow Errors
+    UPLOAD_ERROR = "UPLOAD_ERROR"
+    ANALYTICS_ERROR = "ANALYTICS_ERROR"
+    DOCUMENT_PROCESSING_ERROR = "DOCUMENT_PROCESSING_ERROR"
+
+    # Infrastructure Errors
+    INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
+    DATABASE_ERROR = "DATABASE_ERROR"

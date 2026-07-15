@@ -1,0 +1,38 @@
+﻿# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+*.venv
+
+# Python Cache & Builds
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# Local databases and storage
+backend/storage/
+backend/app.db
+*.db
+*.sqlite3
+
+# Node dependencies and builds
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.eslintcache
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+.env

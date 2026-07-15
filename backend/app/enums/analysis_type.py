@@ -1,0 +1,16 @@
+from enum import Enum
+
+
+class AnalysisTypeEnum(str, Enum):
+    DATA_QUALITY = "DATA_QUALITY"
+    PROFILING = "PROFILING"
+    BORROWER = "BORROWER"
+    LOAN = "LOAN"
+    RISK = "RISK"
+    PORTFOLIO = "PORTFOLIO"
+    CONCENTRATION = "CONCENTRATION"
+    TREND = "TREND"
+    VINTAGE = "VINTAGE"
+    MIGRATION = "MIGRATION"
+    DIAGNOSTIC = "DIAGNOSTIC"
+    DOCUMENT = "DOCUMENT"

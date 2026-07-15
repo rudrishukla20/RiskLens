@@ -1,0 +1,6 @@
+customer_id,age,annual_income,emp_type,loan_val,purpose
+B1,30,50000,Full-time,10000,Debt consolidation
+B2,45,120000,Self-employed,50000,Home improvement
+B3,22,30000,Part-time,5000,Education
+B4,60,95000,Full-time,20000,Car
+B5,35,80000,Full-time,15000,Debt consolidation

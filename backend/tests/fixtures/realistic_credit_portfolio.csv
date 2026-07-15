@@ -1,0 +1,21 @@
+borrower_id,age,gender,income,employment_type,education_level,marital_status,region,occupation,housing_type,family_size,loan_amount,loan_purpose,interest_rate,loan_term,loan_status,disbursement_date,outstanding_amount,annuity_amount,delinquency_days,historical_default_flag,asset_value,credit_burden
+B101,34,Male,65000,Full-time,Bachelor,Married,North,Software Engineer,Mortgage,3,25000,Debt consolidation,0.085,36,Current,2026-01-15,18500,788.0,0,False,180000,0.145
+B102,45,Female,98000,Full-time,Master,Married,East,Project Manager,Owned,4,45000,Home improvement,0.072,60,Current,2025-11-20,38000,901.0,0,False,350000,0.110
+B103,28,Male,42000,Part-time,Bachelor,Single,South,Sales Associate,Rented,1,12000,Education,0.105,24,Current,2026-03-10,9500,557.0,0,False,0,0.159
+B104,52,Male,125000,Self-employed,Doctorate,Married,West,Consultant,Owned,2,60000,Business,0.095,48,Delinquent,2025-08-05,52000,1508.0,45,True,420000,0.144
+B105,39,Female,72000,Full-time,Bachelor,Divorced,North,Accountant,Mortgage,2,30000,Auto,0.068,36,Current,2026-02-18,24500,923.0,0,False,120000,0.154
+B106,61,Female,85000,Full-time,High School,Widowed,East,Operations,Owned,1,15000,Medical,0.112,24,Current,2025-10-12,8000,701.0,0,False,220000,0.099
+B107,24,Male,35000,Full-time,Bachelor,Single,South,Marketing Assistant,Rented,1,8000,Debt consolidation,0.125,12,Charged Off,2025-12-01,8000,712.0,120,True,0,0.244
+B108,41,Male,110000,Full-time,Master,Married,West,Director,Mortgage,5,50000,Home improvement,0.079,60,Current,2026-01-08,47000,1011.0,0,False,480000,0.110
+B109,31,Female,54000,Part-time,Bachelor,Married,North,Graphic Designer,Rented,3,18000,Education,0.098,36,Current,2026-04-02,17200,579.0,0,False,50000,0.129
+B110,48,Male,90000,Self-employed,Bachelor,Married,East,Contractor,Owned,3,35000,Business,0.108,48,Delinquent,2025-06-25,28000,900.0,75,False,290000,0.120
+B111,36,Female,68000,Full-time,Bachelor,Single,South,HR Specialist,Mortgage,2,22000,Debt consolidation,0.089,36,Current,2026-02-10,19200,699.0,0,False,160000,0.123
+B112,50,Female,140000,Full-time,Doctorate,Married,West,VP Finance,Owned,2,75000,Home improvement,0.065,60,Current,2025-09-15,62000,1468.0,0,False,600000,0.126
+B113,27,Male,48000,Full-time,High School,Single,North,IT Support,Rented,1,10000,Auto,0.092,24,Current,2026-03-20,8400,457.0,0,False,20000,0.114
+B114,43,Male,82000,Full-time,Bachelor,Married,East,Analyst,Mortgage,4,28000,Debt consolidation,0.082,36,Delinquent,2025-07-19,15000,880.0,35,False,210000,0.129
+B115,57,Female,75000,Full-time,Master,Divorced,South,Teacher,Owned,1,18000,Medical,0.099,36,Current,2025-11-05,13000,580.0,0,False,190000,0.093
+B116,33,Male,58000,Part-time,Bachelor,Single,West,Web Developer,Rented,2,14000,Education,0.102,24,Current,2026-02-28,11000,647.0,0,False,0,0.134
+B117,46,Male,115000,Self-employed,Master,Married,North,Architect,Owned,4,55000,Business,0.088,48,Current,2025-10-30,42000,1365.0,0,False,380000,0.142
+B118,29,Female,62000,Full-time,Bachelor,Married,East,Nurse,Mortgage,2,20000,Debt consolidation,0.087,36,Current,2026-01-20,16500,633.0,0,False,140000,0.123
+B119,55,Male,95000,Full-time,Bachelor,Married,South,Manager,Owned,3,40000,Home improvement,0.075,48,Current,2025-08-12,29000,967.0,0,False,310000,0.122
+B120,38,Female,88000,Full-time,Master,Single,West,Consultant,Rented,1,32000,Debt consolidation,0.078,36,Current,2026-03-01,28000,999.0,0,False,80000,0.136
