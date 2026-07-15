@@ -22,7 +22,7 @@ export const ReportsPage = () => {
     return localStorage.getItem('selected_dataset_id') || '';
   });
 
-  const [reportType, setReportType] = useState<'RISK_ASSESSMENT' | 'PORTFOLIO_SUMMARY'>('PORTFOLIO_SUMMARY');
+  const [reportType, setReportType] = useState<'CREDIT_RISK_REPORT' | 'PORTFOLIO_REPORT'>('PORTFOLIO_REPORT');
   const [exportFormat, setExportFormat] = useState<'PDF' | 'XLSX'>('PDF');
 
   const handleDatasetChange = (id: string) => {
@@ -45,9 +45,13 @@ export const ReportsPage = () => {
   // 2. Generate Report Mutation
   const generateMutation = useMutation({
     mutationFn: async () => {
+      const defaultTitle = reportType === 'PORTFOLIO_REPORT'
+        ? 'Portfolio Performance Report'
+        : 'Credit Risk Assessment Report';
       return await apiClient.post('/reports/generate', {
         dataset_id: selectedDatasetId,
         report_type: reportType,
+        title: defaultTitle,
         export_format: exportFormat,
       });
     },
@@ -127,8 +131,8 @@ export const ReportsPage = () => {
                 onChange={(e: any) => setReportType(e.target.value)}
                 className="block w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
               >
-                <option value="PORTFOLIO_SUMMARY">Portfolio Risk Summary</option>
-                <option value="RISK_ASSESSMENT">Granular Risk Assessment Logs</option>
+                <option value="PORTFOLIO_REPORT">Portfolio Risk Summary</option>
+                <option value="CREDIT_RISK_REPORT">Granular Risk Assessment Logs</option>
               </select>
             </div>
 

@@ -13,7 +13,7 @@ class ReportGenerateRequest(BaseModel):
 
     dataset_id: Optional[uuid.UUID] = Field(default=None, description="Scope report context to a specific dataset")
     report_type: ReportTypeEnum = Field(description="Visual template style of report document")
-    title: str = Field(max_length=512, description="Target report header title")
+    title: Optional[str] = Field(default=None, max_length=512, description="Target report header title")
     export_format: str = Field(default="PDF", description="Format (PDF or XLSX)")
     custom_parameters: Optional[Dict[str, Any]] = Field(
         default=None, description="Dynamic key-value settings parameters"

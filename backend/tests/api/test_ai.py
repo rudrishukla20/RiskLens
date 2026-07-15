@@ -54,8 +54,8 @@ async def test_disabled_ai_returns_clean_response(client, admin_headers, sample_
         assert res.status_code == 200
         data = res.json()
         assert data["success"] is True
-        assert "disabled" in data["data"]["provider"]
-        assert "AI insight generation is disabled" in data["data"]["executive_summary"]
+        assert data["data"]["provider"] == "Portfolio Analytics"
+        assert "portfolio contains" in data["data"]["executive_summary"].lower()
     finally:
         settings.AI_PROVIDER = original_provider
 

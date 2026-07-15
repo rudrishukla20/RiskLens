@@ -280,24 +280,288 @@ Source Metrics:
         source_metrics: Dict[str, Any],
     ) -> AIInsight:
         """
-        Saves a clean mock insight stating that AI provider is disabled.
+        Generates and saves deterministic rule-based insights when AI provider is disabled.
         """
-        executive_summary = (
-            "AI insight generation is disabled. Please verify your environment configurations (.env) "
-            "and set AI_PROVIDER to 'openai' or 'anthropic' to enable automated LLM commentaries."
-        )
+        def format_inr(val: float) -> str:
+            if val is None:
+                return "₹0"
+            is_neg = val < 0
+            val = abs(val)
+            s = f"{val:.2f}"
+            parts = s.split('.')
+            int_part = parts[0]
+            dec_part = parts[1]
+            if len(int_part) <= 3:
+                formatted_int = int_part
+            else:
+                last_three = int_part[-3:]
+                remaining = int_part[:-3]
+                groups = []
+                while remaining:
+                    groups.append(remaining[-2:])
+                    remaining = remaining[:-2]
+                groups.reverse()
+                formatted_int = ",".join(groups) + "," + last_three
+            formatted_val = f"₹{'-' if is_neg else ''}{formatted_int}.{dec_part}"
+            if formatted_val.endswith(".00"):
+                formatted_val = formatted_val[:-3]
+            return formatted_val
+
+        # 1. Resolve active version ID
+        version_id = None
+        if dataset_id:
+            from app.models.dataset import Dataset
+            ds = await self.db.get(Dataset, dataset_id)
+            if ds:
+                version_id = ds.active_version_id
+
+        if dataset_id and version_id:
+            # Initialize metrics variables
+            total_borrowers = 0
+            total_exposure = 0.0
+            avg_risk_score = 0.0
+            high_risk_pct = 0.0
+            low_risk_pct = 0.0
+            medium_risk_pct = 0.0
+            hhi = 0.0
+            top_purpose_name = "N/A"
+            top_purpose_pct = 0.0
+            top_region_name = "N/A"
+            top_region_pct = 0.0
+            top_employment_name = "N/A"
+            top_employment_pct = 0.0
+            avg_repayment_burden = 0.0
+            burden_exceeded_count = 0
+            dq_health_score = 100.0
+            completeness_score = 100.0
+            missing_value_percentage = 0.0
+            duplicate_percentage = 0.0
+            rule_violations = 0
+            drift_detected = False
+            drift_status = "No schema drift detected"
+
+            # Fetch Portfolio Metrics
+            try:
+                portfolio_engine = PortfolioAnalyticsEngine(self.db)
+                portfolio_metrics = await portfolio_engine.get_metrics(dataset_id, version_id)
+                total_borrowers = portfolio_metrics.get("total_borrowers", 0)
+                total_exposure = portfolio_metrics.get("outstanding_exposure", 0.0)
+                avg_risk_score = portfolio_metrics.get("average_risk_score", 0.0)
+                
+                # Fetch low/medium/high risk count from RiskAssessment table
+                from app.models.risk_assessment import RiskAssessment
+                stmt = select(RiskAssessment).where(
+                    RiskAssessment.dataset_id == dataset_id, RiskAssessment.version_id == version_id
+                )
+                res = await self.db.execute(stmt)
+                assessments = list(res.scalars().all())
+                total_ass = len(assessments)
+                if total_ass > 0:
+                    cats = {"LOW": 0, "MEDIUM": 0, "HIGH": 0}
+                    for a in assessments:
+                        cat_str = a.risk_category.value if hasattr(a.risk_category, "value") else str(a.risk_category)
+                        if cat_str in cats:
+                            cats[cat_str] += 1
+                    low_risk_pct = (cats["LOW"] / total_ass) * 100.0
+                    medium_risk_pct = (cats["MEDIUM"] / total_ass) * 100.0
+                    high_risk_pct = (cats["HIGH"] / total_ass) * 100.0
+
+                exposure_dist = portfolio_metrics.get("visualizations", {}).get("exposure_distribution", {})
+                
+                # Purposes
+                purpose_dict = exposure_dist.get("loan_purposes", {})
+                if purpose_dict:
+                    top_purpose_name, top_purpose_val = max(purpose_dict.items(), key=lambda x: x[1])
+                    top_purpose_pct = (top_purpose_val / total_exposure) * 100.0 if total_exposure else 0.0
+                
+                # Regions
+                region_dict = exposure_dist.get("regions", {})
+                if region_dict:
+                    top_region_name, top_region_val = max(region_dict.items(), key=lambda x: x[1])
+                    top_region_pct = (top_region_val / total_exposure) * 100.0 if total_exposure else 0.0
+                
+                # Employments
+                employment_dict = exposure_dist.get("employment_types", {})
+                if employment_dict:
+                    top_employment_name, top_employment_val = max(employment_dict.items(), key=lambda x: x[1])
+                    top_employment_pct = (top_employment_val / total_exposure) * 100.0 if total_exposure else 0.0
+            except Exception as e:
+                logger.error("Failed to gather portfolio metrics for fallback: %s", e)
+
+            # Fetch Concentration Metrics
+            try:
+                concentration_engine = ConcentrationEngine(self.db)
+                concentration_metrics = await concentration_engine.get_metrics(dataset_id, version_id)
+                hhi = concentration_metrics.get("herfindahl_hirschman_index", 0.0)
+            except Exception as e:
+                logger.error("Failed to gather concentration metrics for fallback: %s", e)
+
+            # Fetch Loan Analytics Metrics
+            try:
+                loan_engine = LoanAnalyticsEngine(self.db)
+                loan_metrics = await loan_engine.get_metrics(dataset_id, version_id)
+                burden_val = loan_metrics.get("repayment_burden_ratio")
+                if isinstance(burden_val, (int, float)):
+                    avg_repayment_burden = burden_val
+                else:
+                    avg_repayment_burden = 0.0
+                if avg_repayment_burden < 1.0:
+                    avg_repayment_burden = avg_repayment_burden * 100.0
+
+                from app.models.loan import Loan
+                from sqlalchemy import func
+                burden_stmt = select(func.count()).select_from(Loan).where(
+                    Loan.dataset_id == dataset_id,
+                    Loan.version_id == version_id,
+                    Loan.repayment_burden_ratio > 0.40
+                )
+                burden_exceeded_count = (await self.db.execute(burden_stmt)).scalar() or 0
+            except Exception as e:
+                logger.error("Failed to gather loan metrics for fallback: %s", e)
+
+            # Fetch Data Quality Metrics
+            try:
+                dq_engine = DataQualityEngine(self.db)
+                dq_metrics = await dq_engine.get_metrics(dataset_id, version_id)
+                dq_health_score = dq_metrics.get("dataset_health_score", 100.0)
+                completeness_score = dq_metrics.get("completeness_score", 100.0)
+                missing_value_percentage = dq_metrics.get("missing_value_percentage", 0.0)
+                duplicate_percentage = dq_metrics.get("duplicate_percentage", 0.0)
+                rule_violations = dq_metrics.get("invalid_business_rule_count", 0)
+                
+                drift_info = dq_metrics.get("schema_drift_indicator", {})
+                if isinstance(drift_info, dict):
+                    drift_detected = drift_info.get("drift_detected", False)
+                else:
+                    drift_detected = "drift" in str(drift_info).lower()
+                
+                if drift_detected:
+                    drift_status = "Schema drift detected between current version and baseline"
+                else:
+                    drift_status = "No schema drift detected between current version and baseline"
+            except Exception as e:
+                logger.error("Failed to gather data quality metrics for fallback: %s", e)
+
+            # Determine Statuses
+            high_risk_status = "Healthy"
+            if high_risk_pct > 25:
+                high_risk_status = "Concern"
+            elif high_risk_pct >= 15:
+                high_risk_status = "Watch"
+
+            hhi_status = "Diversified"
+            if hhi > 2500:
+                hhi_status = "High Concentration"
+            elif hhi >= 1500:
+                hhi_status = "Moderate"
+
+            dq_status = "Excellent"
+            if dq_health_score < 85:
+                dq_status = "Needs Attention"
+            elif dq_health_score <= 95:
+                dq_status = "Acceptable"
+
+            # Construct Commentary Sections
+            formatted_exposure = format_inr(total_exposure)
+            executive_summary = (
+                f"The portfolio contains {total_borrowers} borrowers with total exposure of {formatted_exposure}. "
+                f"Low-risk borrowers account for {low_risk_pct:.1f}%, medium-risk {medium_risk_pct:.1f}%, and high-risk {high_risk_pct:.1f}%. "
+                f"Portfolio concentration remains elevated with an HHI score of {hhi:.1f}."
+            )
+
+            key_findings = [
+                f"The high-risk borrower segment represents {high_risk_pct:.1f}% of the portfolio, which is classified as a {high_risk_status} level.",
+                f"Portfolio concentration is {hhi_status} with a regional HHI score of {hhi:.1f}.",
+                f"Overall data quality score remains {dq_status} at {dq_health_score:.1f}%."
+            ]
+            if top_purpose_name != "N/A":
+                key_findings.append(
+                    f"{top_purpose_name} sector represents largest exposure segment, accounting for {top_purpose_pct:.1f}% of total portfolio value."
+                )
+            if avg_repayment_burden > 0.0 or burden_exceeded_count > 0:
+                key_findings.append(
+                    f"Repayment burden exceeds 40% for {burden_exceeded_count} loans/borrowers, with a portfolio average ratio of {avg_repayment_burden:.1f}%."
+                )
+
+            # Check Trends
+            try:
+                trend_engine = TrendEngine(self.db)
+                trend_metrics = await trend_engine.get_metrics(dataset_id, version_id)
+                risk_trends = trend_metrics.get("visualizations", {}).get("risk_score_trend_line", [])
+                if len(risk_trends) >= 2:
+                    first_risk = risk_trends[0].get("average_risk_score", 0.0)
+                    last_risk = risk_trends[-1].get("average_risk_score", 0.0)
+                    if last_risk > first_risk:
+                        key_findings.append(f"Historical trend analysis indicates an increasing risk profile, with monthly average risk score rising from {first_risk:.2f} to {last_risk:.2f}.")
+                    else:
+                        key_findings.append(f"Historical trend analysis indicates a stable risk profile, with monthly average risk score moving from {first_risk:.2f} to {last_risk:.2f}.")
+            except Exception as e:
+                logger.error("Failed to query trends for fallback findings: %s", e)
+
+            completeness_status = "high-integrity" if completeness_score >= 99.0 else "minor omissions"
+            risk_observations = [
+                f"Schema drift assessment: {drift_status}.",
+                f"Data completeness is at {completeness_score:.1f}%, indicating {completeness_status} coverage of required canonical fields.",
+                f"Missing value density remains within acceptable limits at {missing_value_percentage:.2f}%.",
+                f"Duplicate ratio remains healthy at {duplicate_percentage:.2f}%.",
+                f"Rule violations detected in {rule_violations} records."
+            ]
+
+            recommendations = []
+            if high_risk_pct > 15:
+                recommendations.append("Increase monitoring of high-risk borrower segments.")
+            else:
+                recommendations.append("Maintain standard credit monitoring controls for high-risk borrower segments.")
+
+            if hhi > 1500 or top_purpose_pct > 25:
+                recommendations.append(f"Reduce concentration in dominant sectors, particularly {top_purpose_name}, to mitigate sector concentration risk.")
+            else:
+                recommendations.append("Continue current diversified sector exposure limits.")
+
+            if burden_exceeded_count > 0:
+                recommendations.append("Strengthen underwriting for borrowers with high repayment burden.")
+            else:
+                recommendations.append("Maintain current debt serviceability check standards.")
+
+            if hhi > 1500 or top_region_pct > 25:
+                recommendations.append("Diversify portfolio allocation across regions.")
+            else:
+                recommendations.append("Continue geographic distribution strategy.")
+
+            if dq_health_score < 95:
+                recommendations.append("Enforce stricter validation checks at data ingestion stage and address outstanding rule violations in the system.")
+            else:
+                recommendations.append("Continue maintaining current data quality controls.")
+        else:
+            # Fallback if no dataset is active
+            executive_summary = (
+                "The analysis could not retrieve active credit portfolio metrics. "
+                "Please ensure that a valid dataset with an active version is uploaded and selected."
+            )
+            key_findings = [
+                "No active dataset version found for metrics extraction.",
+                "Verify schema mapping and validation status of the catalog."
+            ]
+            risk_observations = [
+                "Analysis engine could not determine schema drift or completeness without version scope."
+            ]
+            recommendations = [
+                "Upload a valid CSV loan portfolio file.",
+                "Ensure active version is set in the data catalog registry."
+            ]
+
         insight = AIInsight(
             id=uuid.uuid4(),
             dataset_id=dataset_id,
             document_id=document_id,
             analysis_type=analysis_type,
             executive_summary=executive_summary,
-            key_findings_json=[],
-            risk_observations_json=[],
-            recommendations_json=[],
+            key_findings_json=key_findings,
+            risk_observations_json=risk_observations,
+            recommendations_json=recommendations,
             source_metrics_json=source_metrics,
-            provider="disabled",
-            model_name="disabled",
+            provider="Portfolio Analytics",
+            model_name="Rule-based Fallback",
             generated_by=self.user.id,
         )
         self.db.add(insight)

@@ -217,8 +217,14 @@ export const AIInsightsPage = () => {
 
             {/* Metadata info */}
             <div className="rounded-lg border border-border bg-card/50 p-4 text-[10px] text-muted-foreground space-y-1">
-              <div><strong>AI Provider:</strong> {insight.provider}</div>
-              <div><strong>LLM Model:</strong> {insight.model_name}</div>
+              {insight.provider === 'disabled' || insight.provider === 'Portfolio Analytics' ? (
+                <div><strong>Source:</strong> Generated from Portfolio Analytics</div>
+              ) : (
+                <>
+                  <div><strong>AI Provider:</strong> {insight.provider}</div>
+                  <div><strong>LLM Model:</strong> {insight.model_name}</div>
+                </>
+              )}
               <div><strong>Generated At:</strong> {new Date(insight.created_at).toLocaleString()}</div>
             </div>
           </div>

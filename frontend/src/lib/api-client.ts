@@ -61,6 +61,10 @@ apiClient.interceptors.response.use(
           window.location.href = '/login';
           return Promise.reject(refreshError);
         }
+      } else {
+        setAccessToken(null);
+        window.location.href = '/login';
+        return Promise.reject(error);
       }
     }
     
