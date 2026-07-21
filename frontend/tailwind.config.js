@@ -42,6 +42,10 @@ export default {
         input: 'var(--input)',
         ring: 'var(--ring)',
       },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+      },
     },
   },
   plugins: [],

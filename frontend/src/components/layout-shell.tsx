@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth-context';
-import { Sun, Moon, LogOut, Shield, Menu, X, BarChart3 } from 'lucide-react';
+import { LogOut, Shield, Menu, X, BarChart3, ChevronDown } from 'lucide-react';
 
 export interface NavItem {
   label: string;
-  to: string;
+  to?: string;
   icon: React.ComponentType<{ className?: string }>;
+  children?: {
+    label: string;
+    to: string;
+  }[];
 }
 
 interface LayoutShellProps {
@@ -15,24 +19,77 @@ interface LayoutShellProps {
 
 export const LayoutShell = ({ navItems }: LayoutShellProps) => {
   const { user, logout } = useAuth();
-  const [theme, setTheme] = useState<'light' | 'dark'>(
-    () => (localStorage.getItem('theme') as 'light' | 'dark') || 'light'
-  );
+  const { pathname } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    // Find if any group contains a child with the current pathname
+    const autoExpand: Record<string, boolean> = {};
+    navItems.forEach((item) => {
+      if (item.children) {
+        const hasActiveChild = item.children.some((child) => child.to === pathname);
+        if (hasActiveChild) {
+          autoExpand[item.label] = true;
+        }
+      }
+    });
+    if (Object.keys(autoExpand).length > 0) {
+      setExpandedGroups((prev) => ({ ...prev, ...autoExpand }));
+    }
+  }, [pathname, navItems]);
+
+  useEffect(() => {
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      if (currentTheme === 'system') {
+        const root = window.document.documentElement;
+        if (e.matches) {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      }
+    };
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'theme') {
+        const newTheme = (e.newValue as 'light' | 'dark' | 'system') || 'light';
+        const root = window.document.documentElement;
+        let activeTheme = newTheme;
+        if (newTheme === 'system') {
+          activeTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (activeTheme === 'dark') {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Initial theme apply
+    const savedTheme = (localStorage.getItem('theme') as 'light' | 'dark' | 'system') || 'light';
     const root = window.document.documentElement;
-    if (theme === 'dark') {
+    let activeTheme = savedTheme;
+    if (savedTheme === 'system') {
+      activeTheme = mediaQuery.matches ? 'dark' : 'light';
+    }
+    if (activeTheme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
+    return () => {
+      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
@@ -69,22 +126,84 @@ export const LayoutShell = ({ navItems }: LayoutShellProps) => {
         <nav className="flex-1 space-y-1 px-4 py-6 overflow-y-auto" aria-label="Main Navigation">
           {navItems.map((item) => {
             const Icon = item.icon;
+            
+            // Render direct link
+            if (!item.children || item.children.length === 0) {
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to!}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            }
+
+            // Render collapsible group
+            const isExpanded = !!expandedGroups[item.label];
+            const isGroupActive = item.children.some((child) => child.to === pathname);
+            
+            const toggleGroup = () => {
+              setExpandedGroups((prev) => ({
+                ...prev,
+                [item.label]: !prev[item.label],
+              }));
+            };
+
             return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
+              <div key={item.label} className="space-y-0.5">
+                <button
+                  onClick={toggleGroup}
+                  className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors focus:outline-none ${
+                    isGroupActive
+                      ? 'bg-muted text-foreground'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span>{item.label}</span>
-              </NavLink>
+                  }`}
+                  aria-expanded={isExpanded}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </div>
+                  <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isExpanded ? '' : '-rotate-90'}`} />
+                </button>
+                <div
+                  role="group"
+                  className="overflow-hidden transition-all duration-200 ease-in-out"
+                  style={{
+                    maxHeight: isExpanded ? `${item.children.length * 36}px` : '0px',
+                    opacity: isExpanded ? 1 : 0,
+                  }}
+                >
+                  <div className="space-y-0.5 py-0.5 pl-6">
+                    {item.children.map((child) => (
+                      <NavLink
+                        key={child.to}
+                        to={child.to}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 rounded-md py-1.5 text-sm font-medium transition-colors pl-8 ${
+                            isActive
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          }`
+                        }
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span>{child.label}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </nav>
@@ -118,7 +237,7 @@ export const LayoutShell = ({ navItems }: LayoutShellProps) => {
             <h1 className="hidden text-base font-semibold sm:block">RiskLens Analytics</h1>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {/* Role Badge */}
             {user?.role && (
               <span className="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-semibold text-primary dark:text-primary border border-primary/20">
@@ -127,14 +246,7 @@ export const LayoutShell = ({ navItems }: LayoutShellProps) => {
               </span>
             )}
 
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            >
-              {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-            </button>
+
 
             {/* Logout */}
             <button

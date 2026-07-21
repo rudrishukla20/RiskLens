@@ -1,14 +1,36 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Settings, Save, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Settings, Save, CheckCircle2, AlertCircle, Sun, Moon, Monitor } from 'lucide-react';
+import { useAuth } from '@/hooks/auth-context';
 
 export const SettingsPage = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const queryClient = useQueryClient();
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>('');
+
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(
+    () => (localStorage.getItem('theme') as 'light' | 'dark' | 'system') || 'light'
+  );
+
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+    const root = window.document.documentElement;
+    let activeTheme = newTheme;
+    if (newTheme === 'system') {
+      activeTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    if (activeTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', newTheme);
+  };
 
   // Fetch System Settings
   const { data: settingsList, isLoading, error } = useQuery({
@@ -51,7 +73,60 @@ export const SettingsPage = () => {
     <div className="space-y-6 max-w-4xl">
       <div>
         <h2 className="text-xl font-bold tracking-tight">System Settings Configuration</h2>
-        <p className="text-sm text-muted-foreground">Adjust global platform operational variables, path directories, and security constants.</p>
+        <p className="text-sm text-muted-foreground">
+          {isAdmin 
+            ? "Adjust global platform operational variables, path directories, and security constants." 
+            : "View global platform operational variables, path directories, and security constants."}
+        </p>
+      </div>
+
+      {/* Theme Preferences Card */}
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold tracking-tight text-primary dark:text-primary">Theme Preferences</h3>
+          <p className="text-xs text-muted-foreground">Select your preferred interface display appearance.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          {/* Light Mode */}
+          <button
+            onClick={() => handleThemeChange('light')}
+            className={`flex flex-col items-center justify-center p-4 rounded-lg border text-center transition-all hover:bg-muted/50 ${
+              theme === 'light'
+                ? 'border-primary bg-primary/5 text-primary'
+                : 'border-border bg-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Sun className="h-5 w-5 mb-2" />
+            <span className="text-xs font-semibold">Light Mode</span>
+          </button>
+
+          {/* Dark Mode */}
+          <button
+            onClick={() => handleThemeChange('dark')}
+            className={`flex flex-col items-center justify-center p-4 rounded-lg border text-center transition-all hover:bg-muted/50 ${
+              theme === 'dark'
+                ? 'border-primary bg-primary/5 text-primary'
+                : 'border-border bg-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Moon className="h-5 w-5 mb-2" />
+            <span className="text-xs font-semibold">Dark Mode</span>
+          </button>
+
+          {/* System Default */}
+          <button
+            onClick={() => handleThemeChange('system')}
+            className={`flex flex-col items-center justify-center p-4 rounded-lg border text-center transition-all hover:bg-muted/50 ${
+              theme === 'system'
+                ? 'border-primary bg-primary/5 text-primary'
+                : 'border-border bg-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Monitor className="h-5 w-5 mb-2" />
+            <span className="text-xs font-semibold">System Default</span>
+          </button>
+        </div>
       </div>
 
       {successMsg && (
@@ -124,12 +199,14 @@ export const SettingsPage = () => {
                     <span className="font-mono text-sm bg-muted/30 px-3 py-1 rounded border border-border">
                       {setting.setting_value ?? 'NULL'}
                     </span>
-                    <button
-                      onClick={() => handleStartEdit(setting.setting_key, setting.setting_value || '')}
-                      className="rounded border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted"
-                    >
-                      Edit
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleStartEdit(setting.setting_key, setting.setting_value || '')}
+                        className="rounded border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted"
+                      >
+                        Edit
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

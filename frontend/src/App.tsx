@@ -65,15 +65,28 @@ const adminNavItems: NavItem[] = [
 const governanceNavItems: NavItem[] = [
   { label: 'Risk Dashboard', to: '/governance/dashboard', icon: BarChart3 },
   { label: 'Data Catalogs', to: '/governance/datasets', icon: Database },
-  { label: 'Borrower Risk', to: '/governance/borrowers', icon: Users },
-  { label: 'Loan Exposure', to: '/governance/loans', icon: Activity },
-  { label: 'Portfolio Analytics', to: '/governance/portfolio', icon: Layers },
-  { label: 'Concentration', to: '/governance/concentration', icon: Compass },
-  { label: 'Trend Analysis', to: '/governance/trends', icon: TrendingUp },
-  { label: 'Diagnostics', to: '/governance/diagnostics', icon: ShieldAlert },
-  { label: 'Compliance Docs', to: '/governance/documents', icon: FileText },
-  { label: 'AI Commentary', to: '/governance/ai-insights', icon: BrainCircuit },
-  { label: 'Export Reports', to: '/governance/reports', icon: FileSpreadsheet },
+  {
+    label: 'Analytics',
+    icon: Layers,
+    children: [
+      { label: 'Borrower Risk', to: '/governance/borrowers' },
+      { label: 'Loan Exposure', to: '/governance/loans' },
+      { label: 'Portfolio Analytics', to: '/governance/portfolio' },
+      { label: 'Concentration', to: '/governance/concentration' },
+      { label: 'Trend Analysis', to: '/governance/trends' },
+      { label: 'Diagnostics', to: '/governance/diagnostics' },
+    ],
+  },
+  {
+    label: 'Governance',
+    icon: Compass,
+    children: [
+      { label: 'Compliance Docs', to: '/governance/documents' },
+      { label: 'AI Insights', to: '/governance/ai-insights' },
+      { label: 'Export Reports', to: '/governance/reports' },
+    ],
+  },
+  { label: 'Settings', to: '/governance/settings', icon: Settings },
 ];
 
 const DefaultRedirect = () => {
@@ -124,6 +137,7 @@ export const App = () => {
                   <Route path="/governance/documents" element={<DocumentsPage />} />
                   <Route path="/governance/ai-insights" element={<AIInsightsPage />} />
                   <Route path="/governance/reports" element={<ReportsPage />} />
+                  <Route path="/governance/settings" element={<SettingsPage />} />
                 </Route>
               </Route>
 

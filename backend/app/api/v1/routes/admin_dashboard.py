@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import require_admin
+from app.core.deps import require_admin, require_any_role
 from app.models.audit_log import AuditLog
 from app.models.dataset import Dataset
 from app.models.report import Report
@@ -158,9 +158,9 @@ async def list_admin_audit_logs(
 
 
 @router.get("/settings", response_model=ResponseEnvelope[List[SystemSettingResponse]])
-async def list_settings(db: AsyncSession = Depends(get_db), admin_user: User = Depends(require_admin)):
-    """Admin-only view to retrieve all system configuration settings."""
-    service = SystemSettingService(db, admin_user)
+async def list_settings(db: AsyncSession = Depends(get_db), current_user: User = Depends(require_any_role)):
+    """Retrieve all system configuration settings (read-only for CRGO)."""
+    service = SystemSettingService(db, current_user)
     settings_list = await service.list_settings()
 
     responses = [SystemSettingResponse.model_validate(s) for s in settings_list]

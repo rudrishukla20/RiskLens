@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,11 +70,116 @@
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground antialiased font-sans transition-colors duration-200;
+    @apply bg-background text-foreground antialiased transition-colors duration-200;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.8125rem; /* 13px body font size */
+    line-height: 1.45;
+    letter-spacing: -0.005em;
   }
   
   *:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* ═══════════════════════════════════
+     TYPOGRAPHY SYSTEM & HIERARCHY OVERRIDES
+     ═══════════════════════════════════ */
+  
+  /* Headings: Refined weights, tightened letter-spacing */
+  h1, .page-title, h2[class*="text-2xl"], h2[class*="text-3xl"] {
+    font-weight: 600 !important;
+    letter-spacing: -0.015em !important;
+    font-size: 1.5rem !important; /* Page titles: 24px limit for professional visual density */
+  }
+
+  h2, h3, .section-header {
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  /* Card titles & uppercase section tags */
+  h3[class*="tracking-wider"],
+  div[class*="tracking-wider"] {
+    font-weight: 500 !important;
+    font-size: 0.6875rem !important; /* 11px labels */
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+  }
+
+  /* Softer helper texts */
+  p.text-muted-foreground,
+  p[class*="text-muted-foreground"],
+  span.text-muted-foreground {
+    font-size: 0.75rem !important; /* 12px subtexts */
+    letter-spacing: 0.002em !important;
+  }
+
+  /* KPI values: replace chunky font-black with clean semibold tabular figures */
+  .font-black, .font-extrabold {
+    font-weight: 600 !important;
+    font-variant-numeric: tabular-nums !important;
+    letter-spacing: -0.015em !important;
+  }
+
+  /* Numeric formatting elements */
+  .font-mono,
+  table,
+  td,
+  th {
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  /* Table typography layout */
+  thead th {
+    font-size: 0.6875rem !important; /* 11px columns */
+    font-weight: 500 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    color: var(--muted-foreground) !important;
+  }
+
+  tbody td {
+    font-size: 0.8125rem !important; /* 13px table cells */
+    padding: 10px 12px !important;
+  }
+
+  /* Navigation Sidebar adjustments */
+  nav a {
+    font-size: 0.8125rem !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.005em !important;
+  }
+  
+  nav a.active, 
+  nav button[aria-expanded="true"] {
+    font-weight: 500 !important;
+  }
+
+  /* JetBrains Mono overrides for tabular settings key-values */
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-size: 0.75rem !important; /* 12px code cell contents */
+  }
+
+  /* Chart Tick & Axis Typography */
+  .recharts-cartesian-axis-tick text {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 400 !important;
+    opacity: 0.75 !important;
+  }
+
+  .recharts-legend-item text {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+  }
+
+  .recharts-tooltip-item text {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
   }
 }
